@@ -42,5 +42,36 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+    // First, apply zx and nx to the x
+    // if zx == 0, out is x
+    // if zx == 1, out is false
+    Mux16(a=x, b=false, sel=zx, out=xorzero);
+    // calculate notx for nx operation
+    Not16(in=xorzero, out=notx);
+    // if nx == 0, out is x (zx is already applied)
+    // if nx == 1, out is notx
+    Mux16(a=xorzero, b=notx, sel=nx, out=appliedx);
+    
+    // Do the same thing to the y
+    Mux16(a=y, b=false, sel=zy, out=yorzero);
+    Not16(in=yorzero, out=noty);
+    Mux16(a=yorzero, b=noty, sel=ny, out=appliedy);
+
+    // Do the both And/Or operation. Should this be optimized?
+    And16(a=appliedx, b=appliedy, out=andresult);
+    Add16(a=appliedx, b=appliedy, out=addresult);
+
+    // if f == 0, the operation is and
+    // if f == 1, the operation is add
+    Mux16(a=andresult, b=addresult, sel=f, out=calculated);
+    // calculate inverted for no operation
+    Not16(in=calculated, out=inverted);
+    // if no == 0, out is calculated
+    // if no == 1, out is inverted
+    Mux16(a=calculated, b=inverted, sel=no, out=out, out[0..7]=outlow, out[8..15]=outhi, out[15]=ng);
+
+    Or8Way(in=outlow, out=lowor);
+    Or8Way(in=outhi, out=hior);
+    Or(a=lowor, b=hior, out=nzr);
+    Not(in=nzr, out=zr);
 }
