@@ -27,5 +27,22 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // RAM is memory-mapped at      0b0000_0000_0000_0000 ~ 0b0111_1111_1111_1111 (0 ~ 16383)
+    // Screen is memory-mapped at   0b1000_0000_0000_0000 ~ 0b1011_1111_1111_1111 (16384 ~ 24575)
+    // Keyboard is memory-mapped at 0b1100_0000_0000_0000 ~ 0b1100_0000_0000_0000 (24576 ~ 24576)
+    // So, if address[14] == 0, then the access is RAM
+    // else if address[13] == 0, then the access is Screen
+    // else, keyboard
+    
+    // First, dmux load. if address[14] is 0, ram. else, screen
+    DMux(in=load, sel=address[14], a=ram, b=scr);
+    // call all devices
+    RAM16K(in=in, load=ram, address=address[0..13], out=ramout);
+    Screen(in=in, load=scr, address[0..12], out=screenout);
+    Keyboard(out=kbdout);
+    // Choose which output should be the result
+    // if address[13] is 0, the use screen output. else, use keyboard output.
+    Mux16(a=screenout, b=kbdout, sel=address[13], out=scrOrKey);
+    // Finally, choose output by address[14].
+    Mux16(a=ramout, b=scrOrKey, sel=address[14], out=out);
 }
