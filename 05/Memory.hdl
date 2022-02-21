@@ -38,7 +38,7 @@ CHIP Memory {
     DMux(in=load, sel=address[14], a=ram, b=scr);
     // call all devices
     RAM16K(in=in, load=ram, address=address[0..13], out=ramout);
-    Screen(in=in, load=scr, address[0..12], out=screenout);
+    Screen(in=in, load=scr, address=address[0..12], out=screenout);
     Keyboard(out=kbdout);
     // Choose which output should be the result
     // if address[13] is 0, the use screen output. else, use keyboard output.
